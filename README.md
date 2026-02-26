@@ -1,6 +1,6 @@
 # secretexec
 
-`secretexec` fetches a secret from AWS Secrets Manager and injects its key-value pairs as environment variables before executing a given command via `exec(2)`. The current process is replaced by the target command — no wrapper process remains.
+`secretexec` fetches a secret from AWS Secrets Manager and injects its key-value pairs as environment variables before executing a given command via `execve(2)`. The current process is replaced by the target command — no wrapper process remains.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ The secret must be a JSON object with string values, e.g.:
 }
 ```
 
-Each key-value pair is appended to the environment of the executed command. Keys must consist only of ASCII letters, digits, hyphens, and underscores. Values must not contain Unicode control/format characters. Invalid entries are skipped with a warning.
+Each key-value pair is injected into the environment of the executed command. Keys must consist only of ASCII letters, digits, hyphens, and underscores. Values must not contain Unicode control/format characters. Invalid entries are skipped with a warning.
 
 If the command name contains no path separator, it is resolved via `PATH` lookup.
 
