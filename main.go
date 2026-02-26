@@ -69,6 +69,12 @@ func run(ctx context.Context, secretID string, rest []string) error {
 	}
 
 	env := os.Environ()
+	indices := make(map[string]int) // key to env slice position
+	for i, s := range env {
+		if k, _, ok := strings.Cut(s, "="); ok {
+			indices[k] = i
+		}
+	}
 
 	for _, k := range slices.Sorted(maps.Keys(m)) {
 		if !validKey(k) {
@@ -81,7 +87,12 @@ func run(ctx context.Context, secretID string, rest []string) error {
 				log.Printf("key %q value is not valid for KEY=VALUE format, skipping", k)
 				continue
 			}
-			env = append(env, k+"="+v)
+			switch i, ok := indices[k]; {
+			case ok:
+				env[i] = k + "=" + v
+			default:
+				env = append(env, k+"="+v)
+			}
 		default:
 			log.Printf("key %q value is of unsupported type, skipping", k)
 			continue
