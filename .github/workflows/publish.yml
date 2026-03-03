@@ -21,6 +21,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::011833101604:role/secretexec-public-ecr-repo
+          aws-region: us-east-1
+      - uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
       - uses: docker/build-push-action@v6
         id: push
         with:
@@ -30,6 +37,7 @@ jobs:
             linux/amd64
           tags: |
             ghcr.io/doist/secretexec:latest
+            public.ecr.aws/n9b3m5a6/doist/secretexec:latest
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=6,force-compression=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
