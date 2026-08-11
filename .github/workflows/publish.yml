@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ['v*']
     paths-ignore: ["README.md", ".github/**"]
 concurrency: publish
 jobs:
@@ -28,16 +29,24 @@ jobs:
       - uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
-      - uses: docker/build-push-action@v6
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: |
+            ghcr.io/doist/secretexec
+            public.ecr.aws/n9b3m5a6/doist/secretexec
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
+      - uses: docker/build-push-action@v7
         id: push
         with:
           push: true
           platforms: |
             linux/arm64
             linux/amd64
-          tags: |
-            ghcr.io/doist/secretexec:latest
-            public.ecr.aws/n9b3m5a6/doist/secretexec:latest
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=6,force-compression=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
