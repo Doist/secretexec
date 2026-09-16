@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 )
 
 func main() {
@@ -58,6 +59,10 @@ func run(ctx context.Context, secretID string, rest []string) error {
 
 	secret, err := svc.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{SecretId: &secretID})
 	if err != nil {
+		if e, ok := errors.AsType[*types.ResourceNotFoundException](err); ok { // existing, but not yet populated secret
+			log.Print(e)
+			return syscall.Exec(rest[0], rest, os.Environ())
+		}
 		return err
 	}
 	if secret.SecretString == nil {
